@@ -6,6 +6,7 @@ import de.uulm.in.vs.vns.p6b.vnscp.messages.request.LoginMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.PingMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.SendMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.response.ErrorMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.response.LoggedInMessage;
 
 import java.io.*;
 import java.net.Socket;
@@ -64,20 +65,31 @@ public class CommandHandler implements Runnable {
 
 
     private void on_login(LoginMessage msg) {
-        boolean success = server.register_user(msg.get_username());
-        
+        System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received LOGIN: " + msg.get_username());
 
+        boolean success = server.register_user(msg.get_username());
+
+        if(success) {
+            send(new LoggedInMessage(server.get_next_id()));
+
+        } else {
+            System.out.println("[ERROR][CMD]: (" + socket.getInetAddress() + ") Invalid Username " + msg.get_username());
+            send(new ErrorMessage("Invalid Username"));
+        }
     }
 
     private void on_send(SendMessage msg) {
+        System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received SEND: " + msg.get_text());
 
     }
 
     private void on_ping(PingMessage msg) {
+        System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received PING");
 
     }
 
     private void on_bye(ByeMessage msg) {
+        System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received BYE");
 
     }
 
@@ -88,15 +100,16 @@ public class CommandHandler implements Runnable {
             System.out.println("[DEBUG][CMD]: New " + message.getClass().getSimpleName() + " from " + socket.getInetAddress());
 
             if(message instanceof LoginMessage) {
-
+                on_login((LoginMessage) message);
             } else if(message instanceof SendMessage) {
-
+                on_send((SendMessage) message);
             } else if(message instanceof PingMessage) {
-
+                on_ping((PingMessage) message);
             } else if (message instanceof ByeMessage) {
-
+                on_bye((ByeMessage) message);
             } else {
-
+                send(new ErrorMessage("Unknown Request"));
+                System.err.println("[ERROR][CMD]: Client Sent Unknown Request | IP=" + socket.getInetAddress());
             }
 
         } catch (Exception e) {

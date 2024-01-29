@@ -20,6 +20,8 @@ public class Server {
     ArrayList<Socket> event_sockets;
     ArrayList<String> user_names;
 
+    int id = 0;
+
     /**
      * Creates a new VNSCP Server with the given ports
      * The Sockets are opened with the run method
@@ -35,7 +37,7 @@ public class Server {
 
     synchronized boolean register_user(String username) {
         int length = username.length();
-        if(!Pattern.matches("[0-9a-zA-Z]+", username) && length <= 15 || length >= 3)return false;
+        if(!(Pattern.matches("[0-9a-zA-Z]+", username) && length <= 15 && length >= 3))return false;
         if (user_names.contains(username))return false;
         user_names.add(username);
         return true;
@@ -45,6 +47,11 @@ public class Server {
         String payload = message.serialize();
 
 
+    }
+
+    synchronized int get_next_id() {
+        id++;
+        return id;
     }
 
     /**
