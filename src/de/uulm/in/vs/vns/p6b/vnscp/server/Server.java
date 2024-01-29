@@ -29,7 +29,9 @@ public class Server {
     }
 
     synchronized boolean register_user(String username) {
-        if()
+
+        return true;
+
     }
 
 
