@@ -5,8 +5,11 @@ import de.uulm.in.vs.vns.p6b.vnscp.messages.request.ByeMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.LoginMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.PingMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.SendMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.response.ByeByeMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.response.ErrorMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.response.LoggedInMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.response.PongMessage;
+
 
 import java.io.*;
 import java.net.Socket;
@@ -84,13 +87,15 @@ public class CommandHandler implements Runnable {
     }
 
     private void on_ping(PingMessage msg) {
-        System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received PING");
-
+        PongMessage response = new PongMessage(server.user_names);
+        send(response);
+        // TODO: implement broadcast sub/pup messages
     }
 
     private void on_bye(ByeMessage msg) {
-        System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received BYE");
-
+        ByeByeMessage response = new ByeByeMessage(0);
+        send(response);
+        // TODO: implement broadcast sub/pup messages
     }
 
     private void handle_request(String[] lines) {
