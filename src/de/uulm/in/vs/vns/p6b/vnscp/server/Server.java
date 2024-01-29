@@ -1,5 +1,7 @@
 package de.uulm.in.vs.vns.p6b.vnscp.server;
 
+import de.uulm.in.vs.vns.p6b.vnscp.messages.Message;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -37,6 +39,12 @@ public class Server {
         if (user_names.contains(username))return false;
         user_names.add(username);
         return true;
+    }
+
+    synchronized void broadcast_event(Message message) {
+        String payload = message.serialize();
+
+
     }
 
     /**

@@ -15,7 +15,6 @@ public class CommandHandler implements Runnable {
 
     private final Socket socket;
     private final Server server;
-
     private PrintWriter writer;
 
     public CommandHandler(Socket socket, Server server) {
@@ -65,6 +64,8 @@ public class CommandHandler implements Runnable {
 
 
     private void on_login(LoginMessage msg) {
+        boolean success = server.register_user(msg.get_username());
+        
 
     }
 
