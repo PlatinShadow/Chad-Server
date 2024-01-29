@@ -15,18 +15,28 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class CommandHandler implements Runnable {
-
     private final Socket socket;
     private final Server server;
     private PrintWriter writer;
-
     private String username;
+    private boolean is_open = true;
+    private long last_message_time = System.currentTimeMillis();
 
+    private boolean is_logged_in = false;
+
+    /**
+     * Constructor for Session Handler
+     * @param socket socket of the client
+     * @param server server instance
+     */
     public CommandHandler(Socket socket, Server server) {
         this.socket = socket;
         this.server = server;
     }
 
+    /**
+     * Continuously listens for messages from the client
+     */
     @Override
     public void run() {
         try {
@@ -40,8 +50,12 @@ public class CommandHandler implements Runnable {
 
             var lines = new ArrayList<String>();
 
-            while(true) {
+            while(is_open) {
                 String line = reader.readLine();
+                if(!is_open) {
+                    return;
+                }
+
 
                 if(line.isEmpty()) {
                     // Handle the request
@@ -60,6 +74,10 @@ public class CommandHandler implements Runnable {
     }
 
 
+    /**
+     * Sends a message to the current client of this session
+     * @param msg message to send
+     */
     private void send(Message msg) {
         System.out.println("[DEBUG][CMD]: Sending " + msg.getClass().getSimpleName() + " to " + socket.getInetAddress());
         String payload = msg.serialize();
@@ -68,6 +86,10 @@ public class CommandHandler implements Runnable {
     }
 
 
+    /**
+     * Triggered when the client sends the Login Message
+     * @param msg Login Message
+     */
     private void on_login(LoginMessage msg) {
         System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received LOGIN: " + msg.get_username());
 
@@ -76,6 +98,7 @@ public class CommandHandler implements Runnable {
         if(success) {
             int id = server.get_next_id();
             username = msg.get_username();
+            is_logged_in = true;
             send(new LoggedInMessage(id));
             server.broadcast_event(new EventMessage(id, username + " has joined the server"));
         } else {
@@ -84,6 +107,10 @@ public class CommandHandler implements Runnable {
         }
     }
 
+    /**
+     * Triggered when the cleint Send the SendMessage message
+     * @param msg SendMessage Message
+     */
     private void on_send(SendMessage msg) {
         int id = server.get_next_id();
         System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received SEND: " + msg.get_text());
@@ -91,24 +118,53 @@ public class CommandHandler implements Runnable {
         send(new SentMessage(id));
     }
 
+    /**
+     * Triggered when the client sends the Ping message
+     * @param msg Ping Message
+     */
     private void on_ping(PingMessage msg) {
         PongMessage response = new PongMessage(server.user_names);
         send(response);
     }
 
+    /**
+     * Triggered when the user sends the bye message
+     * @param msg Bye Message
+     */
     private void on_bye(ByeMessage msg) {
         int id = server.get_next_id();
         ByeByeMessage response = new ByeByeMessage(id);
         send(response);
-        server.broadcast_event(new EventMessage(id, username + " has left the server"));
+        close_session(id);
     }
 
+    /**
+     * Parse and handle a raw message
+     * @param lines Lines of the message
+     */
     private void handle_request(String[] lines) {
         try {
+
+            // Check timeout
+            if(System.currentTimeMillis() - last_message_time > 10 * 60 * 1000) {
+                int id = server.get_next_id();
+                send(new ExpiredMessage(id));
+                server.broadcast_event(new EventMessage(id, username + " has left the server"));
+                return;
+            }
+
+            // Parse Message
             var message = Message.parse(lines);
 
             System.out.println("[DEBUG][CMD]: New " + message.getClass().getSimpleName() + " from " + socket.getInetAddress());
 
+            // Don't let client send messsage before login
+            if(!(message instanceof  LoginMessage) && !is_logged_in) {
+                send(new ErrorMessage("Login first please"));
+                System.out.println("[ERROR][CMD]: Client tried to send commands before establishing session | IP=" + socket.getInetAddress());
+            }
+
+            // Trigger the right handler depending on message type
             if(message instanceof LoginMessage) {
                 on_login((LoginMessage) message);
             } else if(message instanceof SendMessage) {
@@ -122,9 +178,30 @@ public class CommandHandler implements Runnable {
                 System.err.println("[ERROR][CMD]: Client Sent Unknown Request | IP=" + socket.getInetAddress());
             }
 
+
         } catch (Exception e) {
             send(new ErrorMessage(e.getMessage()));
             System.err.println("[ERROR][CMD]: " + "Error while processing Message: " + e.getMessage() + " | IP=" + socket.getInetAddress());
         }
+
+        // Update last timestamp
+        last_message_time = System.currentTimeMillis();
     }
+
+    /**
+     * Closes the socket
+     * @param id ID of the event
+     */
+    private void close_session(int id) {
+        server.broadcast_event(new EventMessage(id, username + " has left the server"));
+        server.unregister_user(username);
+        is_open = false;
+
+        try {
+            socket.close();
+        } catch (Exception e) {
+
+        }
+    }
+
 }

@@ -38,6 +38,11 @@ public class Server {
         event_sockets = new ArrayList<PrintWriter>();
     }
 
+    /**
+     * Register a new username
+     * @param username username to register
+     * @return true if user was registered
+     */
     synchronized boolean register_user(String username) {
         int length = username.length();
         if(!(Pattern.matches("[0-9a-zA-Z]+", username) && length <= 15 && length >= 3)) return false;
@@ -46,6 +51,18 @@ public class Server {
         return true;
     }
 
+    /**
+     * Delete a user from the user list
+     * @param username user to delete
+     */
+    synchronized void unregister_user(String username) {
+        user_names.remove(username);
+    }
+
+    /**
+     * Broadcast event message to all event sockets
+     * @param message Message To Broadcast
+     */
     synchronized void broadcast_event(Message message) {
         String payload = message.serialize();
         for (PrintWriter w: event_sockets) {
@@ -54,6 +71,10 @@ public class Server {
         }
     }
 
+    /**
+     * Get the next id for a message
+     * @return next id
+     */
     synchronized int get_next_id() {
         id++;
         return id;
@@ -83,17 +104,23 @@ public class Server {
         });
     }
 
+
+    /**
+     * Acceot new sockets from the command socket
+     */
     private void accept_command_sockets() {
         try {
             var socket = command_socket.accept();
             System.out.println("[INFO][CMD]: New Client IP=" + socket.getInetAddress());
-
             thread_pool.execute(new CommandHandler(socket, this));
         } catch(IOException e) {
             System.err.println("[ERROR]: Error while accepting socket: " + e.getMessage());
         }
     }
 
+    /**
+     * Accept new socket connections from the Event Socket
+     */
     private void accept_event_sockets() {
         try {
             var socket = event_socket.accept();
