@@ -32,6 +32,7 @@ public class Server {
      * Opens up the Pub/Sub and Command Socket
      */
     public void run() {
+        System.out.println("[INFO]: Server Running!");
         thread_pool.execute(new Runnable() {
             @Override
             public void run() {
@@ -54,9 +55,11 @@ public class Server {
     private void accept_command_sockets() {
         try {
             var socket = command_socket.accept();
+            System.out.println("[INFO][CMD]: New Client IP=" + socket.getInetAddress());
+
             thread_pool.execute(new CommandHandler(socket, this));
         } catch(IOException e) {
-            System.err.println("Error while accepting socket: " + e.getMessage());
+            System.err.println("[ERROR]: Error while accepting socket: " + e.getMessage());
         }
     }
 
@@ -64,10 +67,10 @@ public class Server {
         try {
             var socket = command_socket.accept();
 
-            System.out.println("Event SOcket Cooneceted!!! IMPLEMENT ME");
+            System.out.println("[INFO][EVENT]: New Client IP=" + socket.getInetAddress());
 
         } catch(IOException e) {
-            System.err.println("Error while accepting socket: " + e.getMessage());
+            System.err.println("[ERROR]: Error while accepting socket: " + e.getMessage());
         }
     }
 

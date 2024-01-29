@@ -1,6 +1,7 @@
 package de.uulm.in.vs.vns.p6b.vnscp.server;
 
 import de.uulm.in.vs.vns.p6b.vnscp.messages.Message;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.response.ErrorMessage;
 
 import java.io.*;
 import java.net.Socket;
@@ -49,6 +50,7 @@ public class CommandHandler implements Runnable {
 
 
     private void send(Message msg) {
+        System.out.println("[DEBUG][CMD]: Sending " + msg.getClass().getSimpleName() + " to " + socket.getInetAddress());
         String payload = msg.serialize();
         writer.write(payload);
         writer.flush();
@@ -57,11 +59,13 @@ public class CommandHandler implements Runnable {
     private void parse_request(String[] lines) {
         try {
             var message = Message.parse(lines);
+            System.out.println("[DEBUG][CMD]: New " + message.getClass().getSimpleName() + " from " + socket.getInetAddress());
 
 
 
         } catch (Exception e) {
             send(new ErrorMessage(e.getMessage()));
+            System.err.println("[ERROR][CMD]: " + "Error while processing Message: " + e.getMessage() + " | IP=" + socket.getInetAddress());
         }
     }
 }
