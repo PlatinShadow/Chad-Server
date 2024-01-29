@@ -1,14 +1,13 @@
 package de.uulm.in.vs.vns.p6b.vnscp.server;
 
 import de.uulm.in.vs.vns.p6b.vnscp.messages.Message;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.event.EventMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.event.MessageMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.ByeMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.LoginMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.PingMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.request.SendMessage;
-import de.uulm.in.vs.vns.p6b.vnscp.messages.response.ByeByeMessage;
-import de.uulm.in.vs.vns.p6b.vnscp.messages.response.ErrorMessage;
-import de.uulm.in.vs.vns.p6b.vnscp.messages.response.LoggedInMessage;
-import de.uulm.in.vs.vns.p6b.vnscp.messages.response.PongMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.response.*;
 
 
 import java.io.*;
@@ -20,6 +19,8 @@ public class CommandHandler implements Runnable {
     private final Socket socket;
     private final Server server;
     private PrintWriter writer;
+
+    private String username;
 
     public CommandHandler(Socket socket, Server server) {
         this.socket = socket;
@@ -73,8 +74,10 @@ public class CommandHandler implements Runnable {
         boolean success = server.register_user(msg.get_username());
 
         if(success) {
-            send(new LoggedInMessage(server.get_next_id()));
-
+            int id = server.get_next_id();
+            username = msg.get_username();
+            send(new LoggedInMessage(id));
+            server.broadcast_event(new EventMessage(id, username + " has joined the server"));
         } else {
             System.out.println("[ERROR][CMD]: (" + socket.getInetAddress() + ") Invalid Username " + msg.get_username());
             send(new ErrorMessage("Invalid Username"));
@@ -82,20 +85,22 @@ public class CommandHandler implements Runnable {
     }
 
     private void on_send(SendMessage msg) {
+        int id = server.get_next_id();
         System.out.println("[DEBUG][CMD]: (" + socket.getInetAddress() + ") Received SEND: " + msg.get_text());
-
+        server.broadcast_event(new MessageMessage(id, username, msg.get_text()));
+        send(new SentMessage(id));
     }
 
     private void on_ping(PingMessage msg) {
         PongMessage response = new PongMessage(server.user_names);
         send(response);
-        // TODO: implement broadcast sub/pup messages
     }
 
     private void on_bye(ByeMessage msg) {
-        ByeByeMessage response = new ByeByeMessage(0);
+        int id = server.get_next_id();
+        ByeByeMessage response = new ByeByeMessage(id);
         send(response);
-        // TODO: implement broadcast sub/pup messages
+        server.broadcast_event(new EventMessage(id, username + " has left the server"));
     }
 
     private void handle_request(String[] lines) {
