@@ -3,6 +3,8 @@ package de.uulm.in.vs.vns.p6b.vnscp.server;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.Message;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -17,8 +19,9 @@ public class Server {
 
     ExecutorService thread_pool;
 
-    ArrayList<Socket> event_sockets;
+    ArrayList<PrintWriter> event_sockets;
     ArrayList<String> user_names;
+
 
     /**
      * Creates a new VNSCP Server with the given ports
@@ -43,8 +46,9 @@ public class Server {
 
     synchronized void broadcast_event(Message message) {
         String payload = message.serialize();
-
-
+        for (PrintWriter w: event_sockets) {
+            w.write(payload);
+        }
     }
 
     /**
@@ -84,7 +88,9 @@ public class Server {
 
     private void accept_event_sockets() {
         try {
-            var socket = command_socket.accept();
+            var socket = event_socket.accept();
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+            event_sockets.add(writer);
 
             System.out.println("[INFO][EVENT]: New Client IP=" + socket.getInetAddress());
 
