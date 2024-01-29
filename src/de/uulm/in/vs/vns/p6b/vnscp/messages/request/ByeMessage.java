@@ -1,5 +1,11 @@
 package de.uulm.in.vs.vns.p6b.vnscp.messages.request;
 
-public class ByeMessage {
+import de.uulm.in.vs.vns.p6b.vnscp.messages.Message;
 
+public class ByeMessage extends Message {
+
+    @Override
+    public String serialize() {
+        return null;
+    }
 }

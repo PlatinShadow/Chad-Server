@@ -31,9 +31,7 @@ public class Server {
     synchronized boolean register_user(String username) {
 
         return true;
-
     }
-
 
     /**
      * Opens up the Pub/Sub and Command Socket

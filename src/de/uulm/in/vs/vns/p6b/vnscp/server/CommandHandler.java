@@ -1,6 +1,10 @@
 package de.uulm.in.vs.vns.p6b.vnscp.server;
 
 import de.uulm.in.vs.vns.p6b.vnscp.messages.Message;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.request.ByeMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.request.LoginMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.request.PingMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.request.SendMessage;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.response.ErrorMessage;
 
 import java.io.*;
@@ -59,14 +63,40 @@ public class CommandHandler implements Runnable {
         writer.flush();
     }
 
+
+    private void on_login(LoginMessage msg) {
+
+    }
+
+    private void on_send(SendMessage msg) {
+
+    }
+
+    private void on_ping(PingMessage msg) {
+
+    }
+
+    private void on_bye(ByeMessage msg) {
+
+    }
+
     private void handle_request(String[] lines) {
         try {
             var message = Message.parse(lines);
 
             System.out.println("[DEBUG][CMD]: New " + message.getClass().getSimpleName() + " from " + socket.getInetAddress());
 
+            if(message instanceof LoginMessage) {
 
+            } else if(message instanceof SendMessage) {
 
+            } else if(message instanceof PingMessage) {
+
+            } else if (message instanceof ByeMessage) {
+
+            } else {
+
+            }
 
         } catch (Exception e) {
             send(new ErrorMessage(e.getMessage()));
