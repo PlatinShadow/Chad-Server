@@ -3,6 +3,8 @@ package de.uulm.in.vs.vns.p6b.vnscp.server;
 import de.uulm.in.vs.vns.p6b.vnscp.messages.Message;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -17,7 +19,7 @@ public class Server {
 
     ExecutorService thread_pool;
 
-    ArrayList<Socket> event_sockets;
+    ArrayList<PrintWriter> event_sockets;
     ArrayList<String> user_names;
 
     int id = 0;
@@ -37,7 +39,7 @@ public class Server {
 
     synchronized boolean register_user(String username) {
         int length = username.length();
-        if(!(Pattern.matches("[0-9a-zA-Z]+", username) && length <= 15 && length >= 3))return false;
+        if(!Pattern.matches("[0-9a-zA-Z]+", username) && length <= 15 || length >= 3)return false;
         if (user_names.contains(username))return false;
         user_names.add(username);
         return true;
@@ -45,8 +47,9 @@ public class Server {
 
     synchronized void broadcast_event(Message message) {
         String payload = message.serialize();
-
-
+        for (PrintWriter w: event_sockets) {
+            w.write(payload);
+        }
     }
 
     synchronized int get_next_id() {
@@ -91,7 +94,9 @@ public class Server {
 
     private void accept_event_sockets() {
         try {
-            var socket = command_socket.accept();
+            var socket = event_socket.accept();
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+            event_sockets.add(writer);
 
             System.out.println("[INFO][EVENT]: New Client IP=" + socket.getInetAddress());
 
