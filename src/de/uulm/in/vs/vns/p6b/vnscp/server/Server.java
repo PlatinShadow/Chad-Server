@@ -35,11 +35,12 @@ public class Server {
         event_socket = new ServerSocket(event_port);
         thread_pool = Executors.newCachedThreadPool();
         user_names = new ArrayList<>();
+        event_sockets = new ArrayList<PrintWriter>();
     }
 
     synchronized boolean register_user(String username) {
         int length = username.length();
-        if(!Pattern.matches("[0-9a-zA-Z]+", username) && length <= 15 || length >= 3)return false;
+        if(!(Pattern.matches("[0-9a-zA-Z]+", username) && length <= 15 && length >= 3)) return false;
         if (user_names.contains(username))return false;
         user_names.add(username);
         return true;
@@ -49,6 +50,7 @@ public class Server {
         String payload = message.serialize();
         for (PrintWriter w: event_sockets) {
             w.write(payload);
+            w.flush();
         }
     }
 

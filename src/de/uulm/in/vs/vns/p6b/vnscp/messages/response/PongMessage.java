@@ -9,7 +9,7 @@ import java.util.List;
 
 public class PongMessage extends Message {
 
-    private final String m_Username;
+    private final String m_Usernames;
     private final String m_Date;
 
     public PongMessage(List<String> usernameList ){
@@ -18,7 +18,7 @@ public class PongMessage extends Message {
         Date date = new Date();
         m_Date = formatter.format(date);
         String usernameString = usernameList.toString();
-        m_Username = usernameString.substring(1, usernameString.length() -1);
+        m_Usernames = usernameString.substring(1, usernameString.length() -1);
     }
     @Override
     public String serialize() {
