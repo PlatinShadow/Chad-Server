@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 public class Server {
 
@@ -15,6 +16,7 @@ public class Server {
     ExecutorService thread_pool;
 
     ArrayList<Socket> event_sockets;
+    ArrayList<String> user_names;
 
     /**
      * Creates a new VNSCP Server with the given ports
@@ -26,10 +28,14 @@ public class Server {
         command_socket = new ServerSocket(command_port);
         event_socket = new ServerSocket(event_port);
         thread_pool = Executors.newCachedThreadPool();
+        user_names = new ArrayList<>();
     }
 
     synchronized boolean register_user(String username) {
-
+        int length = username.length();
+        if(!Pattern.matches("[0-9a-zA-Z]+", username) && length <= 15 || length >= 3)return false;
+        if (user_names.contains(username))return false;
+        user_names.add(username);
         return true;
     }
 
