@@ -36,15 +36,18 @@ public class CommandHandler implements Runnable {
                 String line = reader.readLine();
 
                 if(line.isEmpty()) {
-                    parse_request(lines.toArray(String[]::new));
+                    // Handle the request
+                    handle_request(lines.toArray(String[]::new));
                     lines.clear();
                 } else {
+
+                    // Accumulate request lines
                     lines.add(line);
                 }
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.err.println("[ERROR][CMD]: " + e.getMessage() + " | IP=" + socket.getInetAddress());
         }
     }
 
@@ -56,10 +59,12 @@ public class CommandHandler implements Runnable {
         writer.flush();
     }
 
-    private void parse_request(String[] lines) {
+    private void handle_request(String[] lines) {
         try {
             var message = Message.parse(lines);
+
             System.out.println("[DEBUG][CMD]: New " + message.getClass().getSimpleName() + " from " + socket.getInetAddress());
+
 
 
 

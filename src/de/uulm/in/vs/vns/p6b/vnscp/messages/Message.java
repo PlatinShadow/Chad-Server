@@ -4,6 +4,10 @@ import de.uulm.in.vs.vns.p6b.vnscp.base.Version;
 import de.uulm.in.vs.vns.p6b.vnscp.exceptions.InvalidHeaderException;
 import de.uulm.in.vs.vns.p6b.vnscp.exceptions.InvalidMessageException;
 import de.uulm.in.vs.vns.p6b.vnscp.exceptions.InvalidMessageFormatException;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.request.ByeMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.request.LoginMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.request.PingMessage;
+import de.uulm.in.vs.vns.p6b.vnscp.messages.request.SendMessage;
 
 import javax.security.auth.login.LoginException;
 import java.lang.reflect.Field;
@@ -25,10 +29,10 @@ public abstract class Message {
         }
 
         var message = switch (header[0]) {
-            case "LOGIN" -> new Object();
-            case "BYE" -> new Object();
-            case "SEND" -> new Object();
-            case "PING" -> new Object();
+            case "LOGIN" -> new LoginMessage();
+            case "BYE" -> new ByeMessage();
+            case "SEND" -> new SendMessage();
+            case "PING" -> new PingMessage();
             default -> throw new InvalidMessageException(header[0]);
         };
 

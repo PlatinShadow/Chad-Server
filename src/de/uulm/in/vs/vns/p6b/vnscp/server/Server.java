@@ -28,6 +28,11 @@ public class Server {
         thread_pool = Executors.newCachedThreadPool();
     }
 
+    synchronized boolean register_user(String username) {
+        if()
+    }
+
+
     /**
      * Opens up the Pub/Sub and Command Socket
      */
