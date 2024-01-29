@@ -22,6 +22,7 @@ public class Server {
     ArrayList<PrintWriter> event_sockets;
     ArrayList<String> user_names;
 
+    int id = 0;
 
     /**
      * Creates a new VNSCP Server with the given ports
@@ -49,6 +50,11 @@ public class Server {
         for (PrintWriter w: event_sockets) {
             w.write(payload);
         }
+    }
+
+    synchronized int get_next_id() {
+        id++;
+        return id;
     }
 
     /**
