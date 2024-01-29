@@ -3,6 +3,7 @@ package de.uulm.in.vs.vns.p6b.vnscp.messages;
 import de.uulm.in.vs.vns.p6b.vnscp.base.Version;
 import de.uulm.in.vs.vns.p6b.vnscp.exceptions.InvalidHeaderException;
 import de.uulm.in.vs.vns.p6b.vnscp.exceptions.InvalidMessageException;
+import de.uulm.in.vs.vns.p6b.vnscp.exceptions.InvalidMessageFormatException;
 
 import javax.security.auth.login.LoginException;
 import java.lang.reflect.Field;
@@ -50,7 +51,7 @@ public abstract class Message {
             try {
                 field = messageClass.getDeclaredField(field_name);
             } catch (NoSuchFieldException e) {
-                throw new InvalidMessageException("Invalid Field Name: " + key_value[0]);
+                throw new InvalidMessageFormatException(key_value[0]);
             }
 
             // Set Field Value
